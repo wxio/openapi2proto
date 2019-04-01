@@ -77,15 +77,15 @@ func (e *Encoder) comment(c string) (int64, error) {
 
 // EncodeField encods the message field
 func (e *Encoder) EncodeField(v *Field) error {
-	if len(v.comment) > 0 {
-		fmt.Fprintf(e.dst, "\n")
-		e.comment(v.comment)
-	}
 	fmt.Fprintf(e.dst, "\n")
 	if v.repeated {
 		fmt.Fprintf(e.dst, "repeated ")
 	}
 	fmt.Fprintf(e.dst, "%s %s = %d;", v.Type().Name(), v.Name(), v.Index())
+	if len(v.comment) > 0 {
+		fmt.Fprintf(e.dst, "  ")
+		e.comment(v.comment)
+	}
 	return nil
 }
 
@@ -116,10 +116,10 @@ func (e *Encoder) EncodeMessage(v *Message) error {
 		return v.fields[i].index < v.fields[j].index
 	})
 
-	for i, field := range v.fields {
-		if (i > 0 && len(field.comment) > 0) || (i == 0 && buf.Len() > 0) {
-			fmt.Fprintf(&buf, "\n")
-		}
+	for _, field := range v.fields {
+		// if (i > 0 && len(field.comment) > 0) || (i == 0 && buf.Len() > 0) {
+		// 	fmt.Fprintf(&buf, "\n")
+		// }
 
 		if err := subEncoder.EncodeField(field); err != nil {
 			return errors.Wrapf(err, `failed to encode field %s for message %s`, field.Name(), v.Name())

@@ -353,7 +353,17 @@ func (c *compileCtx) compilePath(path string, p *openapi.Path) error {
 			if resType != nil {
 				m, ok := resType.(*protobuf.Message)
 				if !ok {
-					return errors.Errorf(`got non-message type (%T) in response for %s`, resType, endpointName)
+					// TODO wrap is -wap-primitives
+					typ, err := c.compileSchema(resName, resp.Schema)
+					if err != nil {
+						return errors.Wrapf(err, `failed to compile type for response for %s`, endpointName)
+					}
+					m = protobuf.NewMessage(resName)
+					f := protobuf.NewField(typ, "responce", 1)
+					m.AddField(f)
+					resType = m
+					// fmt.Printf("%+v\n", resType)
+					// return errors.Errorf(`got non-message type (%T) in response for %s`, resType, endpointName)
 				}
 				rpc.SetResponse(m)
 				c.addType(resType)
